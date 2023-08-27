@@ -25,6 +25,66 @@ const createUser = async (req, res) => {
   }
 };
 
+const updateUser = async (req, res) => {
+  const { id, Name, email, password } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        Name,
+        email,
+        password,
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "user not found" });
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const getUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findOne({ _id: id })
+      .populate("Name")
+      .populate("email");
+
+    if (!user) {
+      return res.status(404).json({ error: "user not found" });
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findOneAndDelete({ _id: id });
+
+    if (!user) {
+      return res.status(404).json({ error: "user not found" });
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 module.exports = {
   createUser,
+  updateUser,
+  getUser,
+  deleteUser,
 };
