@@ -3,11 +3,16 @@ const app = express();
 const cors = require('cors');
 const bodyparser = require('body-parser');
 const db = require('./models')
+const orderRoutes = require('./routers/OrderRoutes')
+
 require('dotenv').config();
+
 
 app.use(express.json());
 app.use(cors());
 app.use(bodyparser.json());
+
+app.use('/order',orderRoutes)
 
 db.sequelize.sync().then((req) =>{
     app.listen(process.env.PORT,() =>{
