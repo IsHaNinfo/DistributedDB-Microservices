@@ -5,6 +5,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 const createUser = async (req, res) => {
+  console.log("dsd")
   const { Name, email, password } = req.body;
 
   try {
