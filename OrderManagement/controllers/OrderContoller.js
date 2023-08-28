@@ -52,8 +52,52 @@ const updateOrder = async(req,res) => {
         })
         
     }
+};
+const getOrderById = async (req,res) =>{
+    const {user_id} = req.query;
+    console.log("user: "+user_id)
+    try{
+        const userOrders = await Order.findAll({where:{user_id:user_id}})
+        if(userOrders){
+            res.status(200).json({
+                data:userOrders
+            })
+        } if(!userOrders){
+            res.status(400).json({
+                error:"user not found"
+            })
+        }
+    }catch(err){
+        console.log(err)
+res.status(500).json({
+    error:"internal error occured"
+})
+    }
+};
+
+const deleteOrder = async (req,res) =>{
+    const{order_id} = req.body;
+    try{
+        const getOrder = await Order.findByPk(order_id)
+        if(!getOrder){
+            res.status(400).json({
+                error:"order not found"
+            })
+        }
+        const deleteOrder = await getOrder.destroy()
+        if(deleteOrder){
+            res.status(200).json({
+                message:"Order deleted successfully"
+            })
+        }
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            error:"Internal error occured"
+        })
+    }
 }
 
 
 
-module.exports ={addOrder,updateOrder}
+module.exports ={addOrder,updateOrder,getOrderById,deleteOrder}
