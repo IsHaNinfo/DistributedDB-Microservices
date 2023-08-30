@@ -14,7 +14,7 @@ app.use(bodyparser.json());
 
 app.use('/order',orderRoutes)
 
-db.sequelize.sync().then((req) =>{
+db.sequelize.sync({ alter: true }).then((req) =>{
     app.listen(process.env.PORT,() =>{
         console.log(`server up and running on ${process.env.PORT}`)
     })
