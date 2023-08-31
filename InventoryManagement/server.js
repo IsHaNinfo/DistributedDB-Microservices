@@ -35,7 +35,7 @@ connect().then(() => {
         channel.ack(data);
         channel.sendToQueue(
             "user",
-            Buffer.from(JSON.stringify({ respond:"sample respond" }))
+            Buffer.from(JSON.stringify({ respond: "sample respond" }))
         );
     });
 });
