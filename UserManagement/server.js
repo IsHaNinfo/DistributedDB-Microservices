@@ -56,7 +56,7 @@ const fun = async (req, res, next) => {
   channel.consume("user", (data) => {
     data = JSON.parse(data.content);
     console.log(data)
-  })  
+  })
   next();
 };
 
