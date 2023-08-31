@@ -3,7 +3,8 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+const createToken = require("../utils/createToken");
+const keysecret = process.env.SECRET;
 const createUser = async (req, res) => {
   const { Name, email, password } = req.body;
 
@@ -13,12 +14,13 @@ const createUser = async (req, res) => {
       email,
       password,
     });
-
+    const token = createToken(user._id);
     res.status(200).json({
       Name: user.Name,
       email: user.email,
       password: user.password,
       _id: user._id,
+      token,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
