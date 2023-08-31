@@ -1,5 +1,4 @@
 const amqp = require("amqplib");
-// const { testFun } = require("./controllers/UserController");
 let channel;
 
 async function connect() {
@@ -12,35 +11,16 @@ async function connect() {
         console.log(e);
     }
 
+
 }
-
-const fun = async (req, res, next) => {
-    channel.sendToQueue(
-        "inventory",
-        Buffer.from(
-            JSON.stringify({
-                text: "sample text",
-            })
-        )
-    );
-
-    channel.consume("order", (data) => {
-        data = JSON.parse(data.content);
-        console.log(data);
-    });
-    // console.log(testFun("sss"));
-    next();
-};
 
 const authenticateUser = async (req, res, next) => {
     try {
-        // const { authorization } = req.headers;
-
-        // if (!authorization) {
-        //     return res.status(401).json({ error: "Authorization token required" });
-        // }
-        // const token = authorization.split(" ")[1];
-        const token = 12;
+        const { authorization } = req.headers;
+        if (!authorization) {
+            return res.status(401).json({ error: "Authorization token required" });
+        }
+        const token = authorization.split(" ")[1];
         channel.sendToQueue(
             "user",
             Buffer.from(
@@ -50,29 +30,33 @@ const authenticateUser = async (req, res, next) => {
                 })
             )
         );
-
-        channel.consume("order", (data) => {
-            data = JSON.parse(data.content);
-            channel.ack(data);
-            if (data.operation === "userDetails") {
-                if (data.payload._id) {
-                    console.log(data);
-                    req.userId = data.payload._id;
+        await new Promise((resolve, reject) => {
+            channel.consume("order", (data) => {
+                if (data) {
+                    try {
+                        data = JSON.parse(data.content);
+                        if (data.operation === "userDetails") {
+                            if (data.payload._id) {
+                                console.log(data.payload._id);
+                                req.userId = data.payload._id;
+                            } else {
+                                res.status(401).json({ error: "Request is not authorized" });
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error processing message:", error);
+                    } finally {
+                        resolve();
+                    }
                 }
-                else {
-                    res.status(401).json({ error: "Request is not authorized" });
-                }
-
-                
-            }
-
+            }, {
+                noAck: true
+            });
         });
-
         next();
     } catch (err) {
         console.log(err);
     }
-
 };
 
 
@@ -81,5 +65,5 @@ const authenticateUser = async (req, res, next) => {
 
 module.exports = {
     connect,
-    fun, authenticateUser
+    authenticateUser
 };

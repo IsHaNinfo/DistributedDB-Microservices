@@ -1,7 +1,10 @@
 const {Order} = require('../models')
 
 const  addOrder = async (req,res) => {
-    try{
+    try {
+        
+        const userId = req.userId;
+        console.log(userId,"id");
 const newOrder = await Order.create({
     user_id: req.body.user_id,
     product_id: req.body.product_id,
