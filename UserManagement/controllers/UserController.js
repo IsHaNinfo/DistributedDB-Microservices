@@ -5,6 +5,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 const createToken = require("../utils/createToken");
 const keysecret = process.env.SECRET;
+
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email, password });
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+
+    const token = createToken(user._id);
+
+    res.status(200).json({
+      email,
+      token,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 const createUser = async (req, res) => {
   const { Name, email, password } = req.body;
 
@@ -19,7 +39,6 @@ const createUser = async (req, res) => {
       Name: user.Name,
       email: user.email,
       password: user.password,
-      _id: user._id,
       token,
     });
   } catch (error) {
@@ -27,6 +46,7 @@ const createUser = async (req, res) => {
   }
 };
 
+//UPDATE
 const updateUser = async (req, res) => {
   const { id, Name, email, password } = req.body;
   try {
@@ -89,4 +109,5 @@ module.exports = {
   updateUser,
   getUser,
   deleteUser,
+  loginUser,
 };
