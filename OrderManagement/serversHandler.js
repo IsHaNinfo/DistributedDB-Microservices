@@ -30,6 +30,8 @@ const authenticateUser = async (req, res, next) => {
                 })
             )
         );
+
+
         await new Promise((resolve, reject) => {
             channel.consume("order", (data) => {
                 if (data) {
@@ -37,10 +39,13 @@ const authenticateUser = async (req, res, next) => {
                         data = JSON.parse(data.content);
                         if (data.operation === "userDetails") {
                             if (data.payload._id) {
-                                console.log(data.payload._id);
-                                req.userId = data.payload._id;
-                            } else {
-                                res.status(401).json({ error: "Request is not authorized" });
+                                console.log(data.payload.isError)
+                                if (data.payload.isError) {
+                                    return res.status(401).json({ error: data.payload._id });
+                                }
+                                else {
+                                    req.userId = data.payload._id;
+                                }
                             }
                         }
                     } catch (error) {
@@ -49,15 +54,21 @@ const authenticateUser = async (req, res, next) => {
                         resolve();
                     }
                 }
-            }, {
-                noAck: true
-            });
+            },
+                {
+                    noAck: true
+                }
+            );
         });
+        console.log("sssssssssssssssssssssss");
         next();
     } catch (err) {
         console.log(err);
     }
 };
+
+
+
 
 
 

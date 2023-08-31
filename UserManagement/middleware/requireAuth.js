@@ -24,4 +24,30 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-module.exports = requireAuth;
+
+const userAuth = async (token) => {
+  try {
+    const { _id } = jwt.verify(token, process.env.SECRET);
+    const user = await User.findOne({ _id }).select("_id");
+
+    if (!user) {
+      return "User not found";
+    }
+
+    return user._id;
+  } catch (error) {
+    // console.error(error);
+
+    if (error.name === "TokenExpiredError") {
+      return "Token is expired";
+    }
+
+    return "Authentication failed"; // Default error message for other errors
+  }
+};
+
+
+module.exports = {
+  requireAuth, userAuth
+};
+
