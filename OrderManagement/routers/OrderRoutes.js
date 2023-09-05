@@ -5,7 +5,7 @@ const { or } = require('sequelize');
 const { authenticateUser } = require('../serversHandler');
 
 
-orderRoutes.post('/newOrder', authenticateUser, addOrder);
+orderRoutes.post('/newOrder', addOrder);
 orderRoutes.patch('/updateOrder', updateOrder);
 orderRoutes.get('/userorders', getOrderById);
 orderRoutes.delete('/deleteOrder', deleteOrder);

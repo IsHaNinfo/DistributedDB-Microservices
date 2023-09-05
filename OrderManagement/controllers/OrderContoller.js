@@ -1,12 +1,19 @@
 const { Order } = require('../models')
+const { authUser }= require("../serversHandler")
 
 const addOrder = async (req, res) => {
     try {
+        const { authorization } = req.headers;
+        if (!authorization) {
+            return res.status(401).json({ error: "Authorization token required" });
+        }
+        const token = authorization.split(" ")[1];
+        const userData = await authUser(token);
 
-        const userId = req.userId;
-        console.log(userId, "id in add order");
+        console.log(userData, "userData");
+        
         const newOrder = await Order.create({
-            user_id: userId,
+            user_id: userData.payload,
             product_id: req.body.product_id,
             qty: req.body.qty
         })
@@ -100,6 +107,34 @@ const deleteOrder = async (req, res) => {
         })
     }
 }
+
+
+// const addOrder = async (req, res) => {
+//     try {
+
+//         const userId = await req.userId;
+//         console.log(userId, "id in add order", req.body.qty);
+//         const newOrder = await Order.create({
+//             user_id: userId,
+//             product_id: req.body.product_id,
+//             qty: req.body.qty
+//         })
+//         if (newOrder) {
+//             return res.status(201).json({
+//                 message: "order added sucessfully"
+//             })
+//         } else {
+//             return res.status(400).json({
+//                 message: "could not add order"
+//             })
+//         }
+//     } catch (err) {
+//         console.log("error" + err)
+//         return res.status(500).json({
+//             message: "internal error"
+//         })
+//     }
+// };
 
 
 

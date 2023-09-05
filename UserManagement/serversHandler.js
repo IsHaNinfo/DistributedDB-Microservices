@@ -33,7 +33,7 @@ async function connect() {
                 if (id === "User not found" || id === "Token is expired" || id === "Authentication failed") {
                     isError = true;
                 }
-                channel.ack(data);
+               
                 console.log("ssaa")
                  await channel.sendToQueue(
                     "order",
@@ -51,6 +51,7 @@ async function connect() {
 
 
             }
+            
         } catch (error) {
             console.error("Error processing message:", error);
         }
