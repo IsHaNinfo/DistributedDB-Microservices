@@ -1,5 +1,4 @@
 const amqp = require("amqplib");
-// const { testFun } = require("./controllers/UserController");
 let channel;
 
 async function connect() {
@@ -12,68 +11,61 @@ async function connect() {
         console.log(e);
     }
 
+
 }
 
-const fun = async (req, res, next) => {
-    channel.sendToQueue(
-        "inventory",
-        Buffer.from(
-            JSON.stringify({
-                text: "sample text",
-            })
-        )
-    );
-
-    channel.consume("order", (data) => {
-        data = JSON.parse(data.content);
-        console.log(data);
-    });
-    // console.log(testFun("sss"));
-    next();
-};
-
-const authenticateUser = async (req, res, next) => {
-    try {
-        // const { authorization } = req.headers;
-
-        // if (!authorization) {
-        //     return res.status(401).json({ error: "Authorization token required" });
-        // }
-        // const token = authorization.split(" ")[1];
-        const token = 12;
-        channel.sendToQueue(
-            "user",
-            Buffer.from(
-                JSON.stringify({
-                    operation: "authenticate",
-                    payload: token
-                })
-            )
-        );
-
-        channel.consume("order", (data) => {
-            data = JSON.parse(data.content);
-            channel.ack(data);
-            if (data.operation === "userDetails") {
-                if (data.payload._id) {
-                    console.log(data);
-                    req.userId = data.payload._id;
-                }
-                else {
-                    res.status(401).json({ error: "Request is not authorized" });
-                }
-
-                
+    const authenticateUser = async (req, res, next) => {
+        try {
+            const { authorization } = req.headers;
+            if (!authorization) {
+                return res.status(401).json({ error: "Authorization token required" });
             }
+            const token = authorization.split(" ")[1];
+            await channel.sendToQueue(
+                "user",
+                Buffer.from(
+                    JSON.stringify({
+                        operation: "authenticate",
+                        payload: token
+                    })
+                )
+            );
 
-        });
+            await channel.consume("order", (data) => {
+                // console.log("data from user", data);
+                if (data) {
+                    try {
+                        data = JSON.parse(data.content);
 
-        next();
-    } catch (err) {
-        console.log(err);
-    }
+                        if (data.operation === "userDetails") {
+                            if (data.payload._id) {
+                                if (data.payload.isError) {
+                                    return res.status(401).json({ error: data.payload._id });
+                                } else {
+                                    req.userId = data.payload._id;
+                                    console.log(data.payload._id);
+                                    next();
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error processing message:", error);
+                    }
+                }
+            }, {
+                noAck: true
+            });
 
-};
+            console.log("sssssssssssssssssssssss");
+            
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+
+
+
 
 
 
@@ -81,5 +73,5 @@ const authenticateUser = async (req, res, next) => {
 
 module.exports = {
     connect,
-    fun, authenticateUser
+    authenticateUser
 };
