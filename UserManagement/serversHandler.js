@@ -14,7 +14,7 @@ async function connect() {
         console.log(e);
     }
 
-    channel.consume("user", async (data) => {
+    await channel.consume("user", async (data) => {
         try {
             if (!data) {
                 // Handle the case when no data is received
@@ -23,6 +23,7 @@ async function connect() {
 
             const content = data.content.toString();
             const parsedData = JSON.parse(content);
+            console.log(parsedData);
 
             if (parsedData.operation === "authenticate") {
                 console.log(parsedData.payload, "payload");
@@ -33,15 +34,15 @@ async function connect() {
                     isError = true;
                 }
                 channel.ack(data);
-
-                channel.sendToQueue(
+                console.log("ssaa")
+                 await channel.sendToQueue(
                     "order",
                     Buffer.from(
                         JSON.stringify({
 
                             operation: "userDetails",
                             // payload: { _id: id, isError: isError }
-                            payload: { _id: "122", isError: false }
+                            payload: { _id: id, isError: isError }
 
                         })
                     )

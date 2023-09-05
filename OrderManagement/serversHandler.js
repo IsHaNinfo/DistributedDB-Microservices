@@ -14,58 +14,55 @@ async function connect() {
 
 }
 
-const authenticateUser = async (req, res, next) => {
-    try {
-        const { authorization } = req.headers;
-        if (!authorization) {
-            return res.status(401).json({ error: "Authorization token required" });
-        }
-        const token = authorization.split(" ")[1];
-        channel.sendToQueue(
-            "user",
-            Buffer.from(
-                JSON.stringify({
-                    operation: "authenticate",
-                    payload: token
-                })
-            )
-        );
+    const authenticateUser = async (req, res, next) => {
+        try {
+            const { authorization } = req.headers;
+            if (!authorization) {
+                return res.status(401).json({ error: "Authorization token required" });
+            }
+            const token = authorization.split(" ")[1];
+            await channel.sendToQueue(
+                "user",
+                Buffer.from(
+                    JSON.stringify({
+                        operation: "authenticate",
+                        payload: token
+                    })
+                )
+            );
 
-
-        await new Promise((resolve, reject) => {
-            channel.consume("order", (data) => {
+            await channel.consume("order", (data) => {
+                // console.log("data from user", data);
                 if (data) {
                     try {
                         data = JSON.parse(data.content);
+
                         if (data.operation === "userDetails") {
                             if (data.payload._id) {
-                                console.log(data.payload.isError)
                                 if (data.payload.isError) {
                                     return res.status(401).json({ error: data.payload._id });
-                                }
-                                else {
+                                } else {
                                     req.userId = data.payload._id;
+                                    console.log(data.payload._id);
+                                    next();
                                 }
                             }
                         }
                     } catch (error) {
                         console.error("Error processing message:", error);
-                    } finally {
-                        resolve();
                     }
                 }
-            },
-                {
-                    noAck: true
-                }
-            );
-        });
-        console.log("sssssssssssssssssssssss");
-        next();
-    } catch (err) {
-        console.log(err);
-    }
-};
+            }, {
+                noAck: true
+            });
+
+            console.log("sssssssssssssssssssssss");
+            
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
 
 
 

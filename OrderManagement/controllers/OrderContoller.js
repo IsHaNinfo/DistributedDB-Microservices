@@ -4,9 +4,9 @@ const addOrder = async (req, res) => {
     try {
 
         const userId = req.userId;
-        // console.log(userId, "id");
+        console.log(userId, "id in add order");
         const newOrder = await Order.create({
-            user_id: req.body.user_id,
+            user_id: userId,
             product_id: req.body.product_id,
             qty: req.body.qty
         })

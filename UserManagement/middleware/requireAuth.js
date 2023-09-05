@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../controllers/UserController");
+const User = require("../models/UserModel");
 
 const requireAuth = async (req, res, next) => {
   const { authorization } = req.headers;
@@ -28,8 +28,8 @@ const requireAuth = async (req, res, next) => {
 const userAuth = async (token) => {
   try {
     const { _id } = jwt.verify(token, process.env.SECRET);
-    const user = await User.findOne({ _id }).select("_id");
 
+    const user = await User.findOne({ _id })
     if (!user) {
       return "User not found";
     }
@@ -42,7 +42,7 @@ const userAuth = async (token) => {
       return "Token is expired";
     }
 
-    return "Authentication failed"; // Default error message for other errors
+    return "Authentication failed", error; // Default error message for other errors
   }
 };
 
