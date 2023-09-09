@@ -2,7 +2,7 @@ module.exports = {
   HOST: "localhost",
   PORT: "1433", //Depend on your server
   USER: "sa", //Depend on your server
-  PASSWORD: "12345", //Depend on your server
+  PASSWORD: "12345678", //Depend on your server
   DB: "products_db",
   dialect: "mssql",
   pool: {

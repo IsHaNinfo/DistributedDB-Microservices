@@ -5,7 +5,6 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
-const { connect } = require("./serversHandler");
 
 
 // app.use(bodyParser.json());
@@ -22,7 +21,6 @@ mongoose
   .connect("mongodb://localhost:27017")
   .then(() => {
     app.listen(process.env.PORT, () => {
-      connect();
       console.log("Connected to db & listening on Port", process.env.PORT);
     });
   })
