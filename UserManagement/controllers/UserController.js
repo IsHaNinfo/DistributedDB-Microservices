@@ -5,6 +5,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 const createToken = require("../utils/createToken");
 const keysecret = process.env.SECRET;
+const jwt = require("jsonwebtoken");
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -104,10 +105,35 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+const authUser = async (req, res) => {
+  const { authorization } = req.headers;
+
+  if (!authorization) {
+    return res.status(401).json({ error: "Authorization token required" });
+  }
+
+  const token = authorization.split(" ")[1];
+
+  try {
+    const { _id } = jwt.verify(token, process.env.SECRET);
+    const userID = await User.findOne({ _id }).select("_id");
+    return res.json(userID);
+  } catch (error) {
+    console.log(error);
+    if (error.name === "TokenExpiredError") {
+      res.status(401).json({ error: "user token is expired" });
+    } else {
+      res.status(401).json({ error: "Request is not authorized" });
+    }
+  }
+};
 module.exports = {
   createUser,
   updateUser,
   getUser,
   deleteUser,
   loginUser,
+  authUser
 };
