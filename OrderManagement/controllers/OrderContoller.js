@@ -1,3 +1,4 @@
+const { response } = require('express');
 const { Order } = require('../models')
 const axios = require('axios');
 
@@ -27,9 +28,15 @@ const addOrder = async (req, res) => {
                     qty: req.body.qty
                 })
                 if (newOrder) {
-                    return res.status(201).json({
-                        message: "order added successfully"
-                    })
+                    await axios.put(`http://localhost:8080/api/products/update/${req.body.product_id}`,{quantity:req.body.qty}).then(data=>{
+                        console.log(data);
+                        return res.status(201).json({
+                            message: "order added successfully"
+                        })
+                    }).catch(error =>{
+                        console.log(error);
+                 })
+                   
                 } else {
                     return res.status(400).json({
                         message: "could not add order"
@@ -59,6 +66,19 @@ const addOrder = async (req, res) => {
 
 const updateOrder = async (req, res) => {
     try {
+        const { authorization } = req.headers;
+        if (!authorization) {
+            return res.status(401).json({ error: "Authorization token required" });
+        }
+        const token = authorization.split(" ")[1];
+        await axios
+            .post("http://localhost:4000/api/user/authUser", {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }).then (async response => {
+                const userId = response.data;
+                console.log(userId);
         const { order_id, qty } = req.body;
         console.log("order " + order_id)
         const order = await Order.findByPk(order_id)
@@ -70,15 +90,33 @@ const updateOrder = async (req, res) => {
         order.qty = qty;
         const update = await order.save()
         if (update) {
-            res.status(200).json({
-                message: "quentity updated successfully"
-            })
+            await axios.put(`http://localhost:8080/api/products/update/${req.body.product_id}`,{quantity:req.body.qty}).then(data=>{
+                console.log(data);
+                return res.status(201).json({
+                    message: "order update successfully"
+                })
+            }).catch(error =>{
+                    console.log(error);
+             })
         } else {
             res.status(400).json({
                 error: "could not update db"
             })
         }
-    } catch (err) {
+    }) .catch(error => {
+        if (error.response) {
+            console.error("Server Error:", error.response.data.error);
+            return res.status(error.response.status).json({
+                message: error.response.data.error
+            });
+        } else {
+            return res.status(500).json({
+                message: "Error while authenticating user"
+            });
+        }
+        
+    });
+} catch (err) {
         console.log(err)
         res.status(500).json({
             error: "internal error occured"
@@ -111,18 +149,55 @@ const getOrderById = async (req, res) => {
 const deleteOrder = async (req, res) => {
     const { order_id } = req.body;
     try {
+
+        const { authorization } = req.headers;
+        if (!authorization) {
+            return res.status(401).json({ error: "Authorization token required" });
+        }
+        const token = authorization.split(" ")[1];
+        await axios
+            .post("http://localhost:4000/api/user/authUser", {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }).then(async response => {
+                const userId = response.data;
+                console.log(userId);
         const getOrder = await Order.findByPk(order_id)
+        console.log("oderrrrrrrrrrrrrrrrrrrrr"+getOrder)
         if (!getOrder) {
             res.status(400).json({
                 error: "order not found"
             })
         }
+        if (getOrder) {
+            getOrder.qty = -getOrder.qty;
+            console.log(getOrder)
+          }
         const deleteOrder = await getOrder.destroy()
         if (deleteOrder) {
-            res.status(200).json({
-                message: "Order deleted successfully"
-            })
+            
+            await axios.put(`http://localhost:8080/api/products/update/${getOrder.product_id}`,{quantity:getOrder.qty}).then(data=>{
+                return res.status(201).json({
+                    message: "order delete successfully"
+                })
+            }).catch(error =>{
+                console.log(error);
+         })
         }
+    }) .catch(error => {
+        if (error.response) {
+            console.error("Server Error:", error.response.data.error);
+            return res.status(error.response.status).json({
+                message: error.response.data.error
+            });
+        } else {
+            return res.status(500).json({
+                message: "Error while authenticating user"
+            });
+        }
+        
+    });
     } catch (err) {
         console.log(err);
         res.status(500).json({

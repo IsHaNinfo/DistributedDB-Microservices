@@ -18,7 +18,7 @@ app.use("/api/user", userRouter);
 mongoose.set("strictQuery", true);
 
 mongoose
-  .connect("mongodb://localhost:27017")
+  .connect(process.env.MONGO_URI)
   .then(() => {
     app.listen(process.env.PORT, () => {
       console.log("Connected to db & listening on Port", process.env.PORT);
