@@ -51,11 +51,12 @@ exports.findAll = (req, res) => {
 };
 
 // Find a single products with an id
-exports.findOne = (req, res) => {
-  const id = req.params.id;
+exports.findOne = async(req, res) => {
+  const id = req.body.id;
 
   Product.findByPk(id)
     .then(data => {
+      console.log(data)
       res.send(data);
     })
     .catch(err => {
@@ -66,28 +67,47 @@ exports.findOne = (req, res) => {
 };
 
 // Update a product by the id in the request
-exports.update = (req, res) => {
+exports.update = async (req, res) => {
   const id = req.params.id;
-
-  Product.update(req.body, {
-    where: { id: id }
-  })
-    .then(num => {
-      if (num == 1) {
-        res.send({
-          message: "Product was updated successfully."
-        });
-      } else {
-        res.send({
-          message: `Cannot update Product with id=${id}. Maybe product was not found or req.body is empty!`
-        });
-      }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating Product with id=" + id
+  
+  try {
+    
+    const product = await Product.findByPk(id);
+    
+    if (!product) {
+      return res.status(404).send({
+        message: `Product with id=${id} not found.`
       });
+    }
+    if(product.quantity<req.body.quantity){
+      return res.status(400).json({
+        error:"quantity not available"
+      })
+    }
+
+
+    const updatedQuantity = product.quantity - req.body.quantity;
+
+    
+    const updatedProduct = await Product.update(
+      { quantity: updatedQuantity },
+      { where: { id: id } }
+    );
+
+    if (updatedProduct[0] === 1) {
+      res.send({
+        message: "Product was updated successfully."
+      });
+    } else {
+      res.status(500).send({
+        message: `Cannot update Product with id=${id}.`
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: "Error updating Product with id=" + id
     });
+  }
 };
 
 // Delete a product with the specified id in the request
