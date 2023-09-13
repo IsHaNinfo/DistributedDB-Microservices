@@ -1,9 +1,9 @@
 const db = require("../models");
 const Product = db.products;
 const Op = db.Sequelize.Op;
-
+const axios = require('axios');
 // Create and Save a new product
-exports.create = (req, res) => {
+exports.create = async(req, res) => {
    // Validate request
    if (!req.body.name) {
     res.status(400).send({
@@ -11,7 +11,19 @@ exports.create = (req, res) => {
     });
     return;
   }
-
+  const { authorization } = req.headers;
+  if (!authorization) {
+      return res.status(401).json({ error: "Authorization token required" });
+  }
+  const token = authorization.split(" ")[1];
+  await axios
+      .post("http://localhost:4000/api/user/authUser", {}, {
+          headers: {
+              Authorization: `Bearer ${token}`
+          }
+      }).then(async response=> {
+        const userId = response.data;
+        console.log(userId);
   // Create a product
   const product = {
     name: req.body.name,
@@ -31,6 +43,7 @@ exports.create = (req, res) => {
           err.message || "Some error occurred while creating the product."
       });
     });
+  })
 };
 
 // Retrieve all products from the database.
@@ -111,9 +124,21 @@ exports.update = async (req, res) => {
 };
 
 // Delete a product with the specified id in the request
-exports.delete = (req, res) => {
+exports.delete = async(req, res) => {
   const id = req.params.id;
-
+  const { authorization } = req.headers;
+  if (!authorization) {
+      return res.status(401).json({ error: "Authorization token required" });
+  }
+  const token = authorization.split(" ")[1];
+  await axios
+      .post("http://localhost:4000/api/user/authUser", {}, {
+          headers: {
+              Authorization: `Bearer ${token}`
+          }
+      }).then(async response => {
+        const userId = response.data;
+                console.log(userId);
   Product.destroy({
     where: { id: id }
   })
@@ -133,6 +158,7 @@ exports.delete = (req, res) => {
         message: "Could not delete Product with id=" + id
       });
     });
+  })
 };
 
 // Delete all products from the database.

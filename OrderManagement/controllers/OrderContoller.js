@@ -90,7 +90,7 @@ const updateOrder = async (req, res) => {
         order.qty = qty;
         const update = await order.save()
         if (update) {
-            await axios.put(`http://localhost:8080/api/products/update/${req.body.product_id}`,{quantity:req.body.qty}).then(data=>{
+            await axios.put(`http://localhost:8080/api/products/update/${order.product_id}`,{quantity:req.body.qty}).then(data=>{
                 console.log(data);
                 return res.status(201).json({
                     message: "order update successfully"
